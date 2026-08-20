@@ -1,55 +1,93 @@
-# L9itha
+# L9itha — لقيتها
 
-L9itha is a multilingual lost-and-found platform designed for Tunisia. People can publish something they found or lost, search by a person's name, item, description, or location, and contact the person who posted it.
+L9itha is a Tunisian-first lost-and-found app: publish a missing or found item, discover likely matches, and verify ownership privately.
 
-## Features
+![L9itha desktop home](audit/2026-08-20-release/01-desktop-home.png)
 
-- Post found or lost documents, keys, phones, wallets, bags, pets, and other items
-- Search and filter real community posts by name, item, category, status, and location
-- Optional photo uploads with privacy guidance for identity documents
-- Browser-based OCR for reading Arabic, French, and English names from documents
-- Optional public contact methods: phone, Facebook, and Instagram
-- Private ownership-claim flow for sensitive items
-- English, French, Arabic, and Tunisian/Arabizi interfaces
-- Responsive layout with Arabic right-to-left support
-- No built-in sample listings or invented community statistics
+## What works
+
+- Public multilingual discovery in Tunisian Arabic, Arabic, French, and English
+- Structured lost/found reports with explainable match suggestions
+- Google and Facebook sign-in through Firebase Authentication
+- Private, membership-checked conversations and ownership claims
+- Approximate public areas; street numbers and sensitive document photos are rejected
+- SQLite persistence, moderation reports, saved items, notifications, and offline shell
+- Responsive RTL/LTR interface for mobile and desktop
+
+Instagram is not a native Firebase Authentication provider. The safe follow-up is a server-side Meta OAuth exchange that mints a [Firebase custom token](https://firebase.google.com/docs/auth/admin); no Instagram client secret belongs in the browser.
 
 ## Run locally
 
-Requirements: Node.js 20 or newer and npm.
+Requirements: Node.js 22.5+ and npm.
 
 ```bash
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-Open the local address printed by Vite, normally `http://localhost:5173`.
+Open `http://127.0.0.1:5173`. The API runs on `http://127.0.0.1:8787`; Vite proxies `/api` and `/uploads`.
 
-## Available commands
+Without Firebase variables, public browsing still works and development builds show a local demo sign-in. Production disables the demo endpoint.
+
+## Firebase sign-in
+
+1. Create a Firebase web app and enable [Google](https://firebase.google.com/docs/auth/web/google-signin) and [Facebook](https://firebase.google.com/docs/auth/web/facebook-login) in Authentication → Sign-in method.
+2. Add the web values to the four `VITE_FIREBASE_*` entries in `.env`.
+3. Set `FIREBASE_PROJECT_ID` on the server.
+4. Provide Firebase Admin through Application Default Credentials. Keep service-account files outside the repository.
+5. Add the deployed domain to Firebase Authorized domains and to each provider's OAuth settings.
+
+The browser sends a Firebase ID token once; the API verifies it and returns an opaque `HttpOnly`, `SameSite=Lax`, production-`Secure` session cookie.
+
+## Verify
 
 ```bash
-npm run dev      # Start the development server
-npm run lint     # Run ESLint
-npm run build    # Type-check and create a production build
-npm run preview  # Preview the production build
+npm run lint
+npm test
+npm run build
+npm audit --omit=dev
 ```
 
-## Privacy
+The integration suite uses an isolated temporary database and covers authentication, cross-user conversation access, privacy enforcement, matching, rate limiting, reports, claims, comments, settings, and production cookie/header behavior.
 
-Identity numbers, addresses, signatures, QR codes, and barcodes should never be published. The posting form reminds finders to crop or cover private document information before uploading a photo. OCR runs in the browser, but its result should always be checked manually.
+## Production
 
-Contact details added to a post are public by design and are always optional.
+Build and run directly:
 
-## Current project status
+```bash
+npm ci
+npm run build
+L9ITHA_ALLOWED_ORIGIN=https://your-domain.example npm start
+```
 
-This repository currently contains the working front-end prototype. Posts and uploaded images are stored in the visitor's browser using local storage, so they are not yet shared between different users or devices.
+Or build the container. Firebase's public web values are build arguments because Vite embeds them in the client bundle:
 
-A production release will need a shared database, image storage, authentication, moderation, abuse reporting, and server-side privacy protections.
+```bash
+docker build \
+  --build-arg VITE_FIREBASE_API_KEY=... \
+  --build-arg VITE_FIREBASE_AUTH_DOMAIN=... \
+  --build-arg VITE_FIREBASE_PROJECT_ID=... \
+  --build-arg VITE_FIREBASE_APP_ID=... \
+  -t l9itha .
 
-## Technology
+docker run --rm -p 4173:4173 \
+  -e FIREBASE_PROJECT_ID=... \
+  -e L9ITHA_ALLOWED_ORIGIN=https://your-domain.example \
+  -v l9itha-data:/app/.data \
+  l9itha
+```
 
-- React
-- TypeScript
-- Vite
-- Tesseract.js
-- Lucide icons
+Before going live, use HTTPS, persistent encrypted storage, backups, one exact allowed origin, and a Firebase Admin identity. See [SECURITY.md](SECURITY.md).
+
+## Stack
+
+React 19 · TypeScript · Vite · Node HTTP · `node:sqlite` · Firebase Auth · Sharp
+
+## More screens
+
+| Mobile home | Sign in |
+|---|---|
+| ![Mobile home](audit/2026-08-20-release/02-mobile-home.png) | ![Firebase sign-in](audit/2026-08-20-release/03-sign-in.png) |
+
+The release QA notes and visual evidence are in [design-qa.md](design-qa.md).
