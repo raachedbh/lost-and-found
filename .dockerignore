@@ -1,0 +1,12 @@
+.data
+.env
+.env.*
+!.env.example
+.git
+.github
+audit
+dist
+node_modules
+implementation-*.png
+npm-debug.log*
+*.tsbuildinfo
