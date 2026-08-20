@@ -54,16 +54,24 @@ const en: Dictionary = {
 }
 
 export const translations: Record<Language, Dictionary> = {
-  tn,
-  ar,
+  tn: {
+    ...tn,
+    lightMode: 'الوضع الفاتح',
+  },
+  ar: {
+    ...ar,
+    lightMode: 'الوضع الفاتح',
+  },
   fr: {
     ...fr,
+    lightMode: 'Mode clair',
     exactLocationPrivate: 'Indiquez seulement la ville ou le quartier — ce lieu est public',
     documentProtection: 'Les photos de documents sont désactivées.',
     documentProtectionHint: "Publiez seulement une description générale, jamais une pièce d’identité.",
   },
   en: {
     ...en,
+    lightMode: 'Light mode',
     exactLocationPrivate: 'Enter only the city or neighborhood — this area is public',
     documentProtection: 'Document photos are disabled.',
     documentProtectionHint: 'Post a general description only. Never upload an ID or passport.',

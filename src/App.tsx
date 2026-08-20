@@ -150,9 +150,9 @@ function getInitialTheme(): 'light' | 'dark' {
     const stored = localStorage.getItem('l9itha-theme')
     if (stored === 'dark' || stored === 'light') return stored
   } catch {
-    // Use system preference below.
+    // Fall back to the product default below.
   }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return 'light'
 }
 
 function normalize(value: string) {
@@ -884,6 +884,12 @@ function App() {
     }
   }
 
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(nextTheme)
+    if (sessionUser) void api.updateSettings({ theme: nextTheme }).catch(() => setToast(t('syncFailed')))
+  }
+
   return (
     <div className="app-shell">
       <Header
@@ -900,6 +906,8 @@ function App() {
         setMobileMenuOpen={setMobileMenuOpen}
         onPost={() => setPostMenuOpen(true)}
         onSignIn={() => setAuthOpen(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
         user={sessionUser}
         onSignOut={() => void signOut()}
       />
@@ -1078,12 +1086,14 @@ interface HeaderProps {
   setMobileMenuOpen: (open: boolean) => void
   onPost: () => void
   onSignIn: () => void
+  theme: 'light' | 'dark'
+  onToggleTheme: () => void
   user: DemoUser | null
   onSignOut: () => void
 }
 
 function Header(props: HeaderProps) {
-  const { page, language, t, navigate, languageOpen, setLanguageOpen, setLanguage, accountOpen, setAccountOpen, mobileMenuOpen, setMobileMenuOpen, onPost, onSignIn, user, onSignOut } = props
+  const { page, language, t, navigate, languageOpen, setLanguageOpen, setLanguage, accountOpen, setAccountOpen, mobileMenuOpen, setMobileMenuOpen, onPost, onSignIn, theme, onToggleTheme, user, onSignOut } = props
   return (
     <header className="site-header">
       <button className="brand-button" onClick={() => navigate('home')} aria-label={t('home')}><Brand /></button>
@@ -1091,6 +1101,7 @@ function Header(props: HeaderProps) {
         {navPages.map((item) => <button key={item} className={page === item ? 'active' : ''} onClick={() => navigate(item)}>{t(item)}</button>)}
       </nav>
       <div className="header-actions">
+        <button className="header-icon theme-toggle" onClick={onToggleTheme} aria-label={theme === 'dark' ? t('lightMode') : t('darkMode')} title={theme === 'dark' ? t('lightMode') : t('darkMode')}>{theme === 'dark' ? <Sun /> : <Moon />}</button>
         <button className="header-icon" onClick={() => navigate('notifications')} aria-label={t('notifications')}><Bell /><span className="notification-dot" /></button>
         <div className="language-control">
           <button className="language-button" onClick={() => setLanguageOpen(!languageOpen)} aria-expanded={languageOpen}>{languageNames[language]} <ChevronDown size={16} /></button>
