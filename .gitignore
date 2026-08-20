@@ -5,6 +5,9 @@ node_modules/
 dist/
 .vite/
 
+# Local runtime data
+.data/
+
 # Local environment and logs
 .env
 .env.*
@@ -23,3 +26,6 @@ Thumbs.db
 
 # TypeScript caches
 *.tsbuildinfo
+
+# Local visual verification captures
+implementation-*.png
