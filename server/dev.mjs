@@ -22,4 +22,3 @@ children.forEach((child) => child.on('exit', (code, signal) => {
 
 process.on('SIGINT', () => stop())
 process.on('SIGTERM', () => stop())
-
